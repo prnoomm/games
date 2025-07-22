@@ -1,663 +1,432 @@
-
 <!DOCTYPE html>
 <html lang="th">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>พลเมืองนักสืบ: เปิดแผ่นป้ายไขรหัสหน้าที่</title>
+    <title>ระบบสะสมแต้มนักเรียน</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Prompt:wght@300;400;500;600;700&family=Sriracha&display=swap');
-        
+        @import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@300;400;500;600;700&display=swap');
         body {
-            font-family: 'Prompt', sans-serif;
-            background-color: #1a103c;
-            background-image: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
-            min-height: 100vh;
-            overflow-x: hidden;
+            font-family: 'Sarabun', sans-serif;
+            background-color: #f0f4f8;
         }
-        
-        .game-title {
-            font-family: 'Sriracha', cursive;
-        }
-        
-        .card {
-            perspective: 1000px;
-            cursor: pointer;
-            transition: transform 0.3s;
-        }
-        
-        .card:hover {
-            transform: translateY(-5px);
-        }
-        
-        .card-inner {
-            position: relative;
-            width: 100%;
-            height: 100%;
-            transition: transform 0.8s;
-            transform-style: preserve-3d;
-        }
-        
-        .card.flipped .card-inner {
-            transform: rotateY(180deg);
-        }
-        
-        .card-front, .card-back {
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            backface-visibility: hidden;
-            border-radius: 1rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-        }
-        
-        .card-front {
-            background: linear-gradient(135deg, #ff9a9e 0%, #fad0c4 100%);
-            font-weight: bold;
-            font-size: 2.5rem;
-            border: 4px dashed #fff;
-            box-shadow: 0 0 0 4px #ff9a9e, 0 8px 20px rgba(0, 0, 0, 0.3);
-        }
-        
-        .card-back {
-            background: white;
-            transform: rotateY(180deg);
-            padding: 1rem;
-            text-align: center;
-            border: 4px solid #6c5ce7;
-        }
-        
-        .intro-screen {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 1.5rem;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
-            border: 4px solid #6c5ce7;
-        }
-        
-        .game-screen {
-            display: none;
-        }
-        
-        .btn-start {
-            background: linear-gradient(45deg, #6c5ce7, #a29bfe);
-            transition: all 0.3s;
-            box-shadow: 0 4px 15px rgba(108, 92, 231, 0.4);
-        }
-        
-        .btn-start:hover {
+        .student-card:hover {
             transform: translateY(-3px);
-            box-shadow: 0 7px 20px rgba(108, 92, 231, 0.6);
-        }
-        
-        .btn-back {
-            background: linear-gradient(45deg, #6c5ce7, #a29bfe);
-            transition: all 0.3s;
-            box-shadow: 0 4px 10px rgba(108, 92, 231, 0.4);
-        }
-        
-        .btn-back:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(108, 92, 231, 0.6);
-        }
-        
-        .emoji-clue {
-            font-size: 3rem;
-            margin-bottom: 1rem;
-            filter: drop-shadow(0 2px 3px rgba(0,0,0,0.2));
-            line-height: 1;
-        }
-        
-        .detective-badge {
-            position: absolute;
-            top: -15px;
-            right: -15px;
-            width: 40px;
-            height: 40px;
-            background: #ffd32a;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 2px solid #fff;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-            z-index: 10;
-        }
-        
-        .magnifying-glass {
-            position: absolute;
-            bottom: -20px;
-            right: -20px;
-            font-size: 2.5rem;
-            transform: rotate(-15deg);
-            filter: drop-shadow(2px 2px 3px rgba(0,0,0,0.3));
-            z-index: 5;
-        }
-        
-        .confetti {
-            position: fixed;
-            width: 10px;
-            height: 10px;
-            background-color: #f00;
-            opacity: 0;
-            animation: confetti 5s ease-in-out infinite;
-            z-index: -1;
-        }
-        
-        @keyframes confetti {
-            0% {
-                transform: translateY(0) rotate(0deg);
-                opacity: 1;
-            }
-            100% {
-                transform: translateY(100vh) rotate(720deg);
-                opacity: 0;
-            }
-        }
-        
-        .footer-note {
-            font-size: 0.8rem;
-            color: rgba(255,255,255,0.6);
-        }
-        
-        .score-display {
-            background: rgba(255,255,255,0.9);
-            border-radius: 1rem;
-            padding: 0.5rem 1rem;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-            border: 2px solid #6c5ce7;
-            font-weight: bold;
-        }
-        
-        .flag-thai {
-            width: 30px;
-            height: 20px;
-            background: linear-gradient(to bottom, #ED1C24 33.33%, #FFFFFF 33.33%, #FFFFFF 66.66%, #0039A6 66.66%);
-            display: inline-block;
-            margin-right: 5px;
-            vertical-align: middle;
-            border: 1px solid rgba(0,0,0,0.1);
-        }
-        
-        .reveal-btn {
-            background: linear-gradient(45deg, #ff9a9e, #fad0c4);
-            transition: all 0.3s;
-            box-shadow: 0 4px 10px rgba(255, 154, 158, 0.4);
-            margin-top: 0.5rem;
-        }
-        
-        .reveal-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 15px rgba(255, 154, 158, 0.6);
-        }
-        
-        .answer {
-            display: none;
-            margin-top: 0.5rem;
-            padding: 0.5rem;
-            background-color: #f0f4ff;
-            border-radius: 0.5rem;
-            border: 1px dashed #6c5ce7;
-        }
-        
-        .school-logo {
-            display: inline-block;
-            margin-right: 8px;
-            vertical-align: middle;
-        }
-        
-        .footer-container {
-            background-color: rgba(0, 0, 0, 0.3);
-            border-radius: 1rem;
-            padding: 0.75rem 1.5rem;
-            display: inline-flex;
-            align-items: center;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
     </style>
 </head>
-<body class="p-4">
-    <!-- Intro Screen -->
-    <div id="intro-screen" class="intro-screen max-w-5xl mx-auto p-8 my-4">
-        <div class="relative">
-            <h1 class="game-title text-4xl md:text-5xl font-bold text-center mb-6 text-gradient bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 relative">
-                พลเมืองนักสืบ: เปิดแผ่นป้ายไขรหัสหน้าที่
-                <span class="magnifying-glass">🔍</span>
-            </h1>
-            <div class="absolute top-0 right-0 text-5xl transform -translate-y-1/2 rotate-12">🕵️</div>
-        </div>
-        
-        <div class="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl mb-8 border-l-4 border-purple-500 relative">
-            <div class="detective-badge">🔎</div>
-            <h2 class="text-2xl font-semibold mb-4 text-purple-800">คำแนะนำสำหรับนักสืบ</h2>
-            <ul class="space-y-3 text-lg text-gray-700">
-                <li class="flex items-start">
-                    <span class="w-6 h-6 mr-2 text-purple-500 flex-shrink-0 mt-1">🎮</span>
-                    <span>เกมนี้มีแผ่นป้ายลับทั้งหมด 12 แผ่น แต่ละแผ่นซ่อนปริศนา Emoji เกี่ยวกับหน้าที่พลเมือง</span>
-                </li>
-                <li class="flex items-start">
-                    <span class="w-6 h-6 mr-2 text-purple-500 flex-shrink-0 mt-1">👆</span>
-                    <span>คลิกที่แผ่นป้ายเพื่อเปิดดูปริศนา Emoji ที่ซ่อนอยู่</span>
-                </li>
-                <li class="flex items-start">
-                    <span class="w-6 h-6 mr-2 text-purple-500 flex-shrink-0 mt-1">🧩</span>
-                    <span>ทายว่า Emoji เหล่านั้นหมายถึงหน้าที่พลเมืองเรื่องใด</span>
-                </li>
-                <li class="flex items-start">
-                    <span class="w-6 h-6 mr-2 text-purple-500 flex-shrink-0 mt-1">🏆</span>
-                    <span>กดปุ่ม "เฉลย" เพื่อดูคำตอบ และได้ 1 คะแนนเมื่อเปิดแผ่นป้าย</span>
-                </li>
-                <li class="flex items-start">
-                    <span class="w-6 h-6 mr-2 text-purple-500 flex-shrink-0 mt-1">🔄</span>
-                    <span>คลิกที่ปุ่ม "กลับ" เพื่อปิดแผ่นป้ายและเลือกแผ่นป้ายอื่นต่อไป</span>
-                </li>
-            </ul>
-        </div>
-        
-        <div class="bg-yellow-50 p-5 rounded-xl mb-6 border-l-4 border-yellow-400">
-            <h3 class="text-xl font-semibold mb-2 text-yellow-800 flex items-center">
-                <span class="mr-2">💡</span> เกร็ดความรู้
-            </h3>
-            <p class="text-gray-700">
-                หน้าที่พลเมืองตามรัฐธรรมนูญ คือ สิ่งที่ประชาชนทุกคนต้องปฏิบัติตามกฎหมายสูงสุดของประเทศ เพื่อความสงบเรียบร้อยและความเจริญก้าวหน้าของสังคม เช่น การเคารพกฎหมาย การเสียภาษี การไปใช้สิทธิเลือกตั้ง และการปกป้องประเทศชาติ
-            </p>
-        </div>
-        
-        <div class="flex justify-center">
-            <button id="start-game" class="btn-start text-white font-bold py-3 px-10 rounded-full text-xl flex items-center">
-                <span class="mr-2">🚀</span> เริ่มเกมไขรหัส
-            </button>
+<body>
+    <div class="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+        <header class="bg-indigo-600 text-white shadow-lg">
+            <div class="container mx-auto px-4 py-6">
+                <div class="flex justify-between items-center">
+                    <h1 class="text-2xl md:text-3xl font-bold">ระบบสะสมแต้มนักเรียน</h1>
+                    <div class="flex items-center space-x-4">
+                        <span id="current-date" class="hidden md:inline-block"></span>
+                        <button id="add-student-btn" class="bg-white text-indigo-600 px-4 py-2 rounded-lg font-medium hover:bg-indigo-50 transition duration-300">เพิ่มนักเรียน</button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="container mx-auto px-4 py-8">
+            <div class="bg-white rounded-xl shadow-md p-6 mb-8">
+                <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                    <h2 class="text-xl font-semibold text-gray-800 mb-4 md:mb-0">ค้นหานักเรียน</h2>
+                    <div class="w-full md:w-1/2">
+                        <input type="text" id="search-input" placeholder="ค้นหาตามชื่อหรือรหัสนักเรียน..." 
+                            class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" id="students-container">
+                    <!-- Student cards will be generated here -->
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-xl shadow-md p-6">
+                <h2 class="text-xl font-semibold text-gray-800 mb-6">สรุปคะแนน</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full bg-white">
+                        <thead>
+                            <tr class="bg-indigo-100 text-indigo-800">
+                                <th class="py-3 px-4 text-left">ชั้นเรียน</th>
+                                <th class="py-3 px-4 text-left">จำนวนนักเรียน</th>
+                                <th class="py-3 px-4 text-left">คะแนนรวม</th>
+                                <th class="py-3 px-4 text-left">คะแนนเฉลี่ย</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summary-table">
+                            <!-- Summary data will be generated here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal for adding/editing students -->
+    <div id="student-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold text-gray-800" id="modal-title">เพิ่มนักเรียน</h3>
+                <button id="close-modal" class="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <form id="student-form">
+                <input type="hidden" id="student-id">
+                <div class="mb-4">
+                    <label for="student-code" class="block text-gray-700 mb-2">รหัสนักเรียน</label>
+                    <input type="text" id="student-code" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="student-name" class="block text-gray-700 mb-2">ชื่อ-นามสกุล</label>
+                    <input type="text" id="student-name" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                </div>
+                <div class="mb-4">
+                    <label for="student-class" class="block text-gray-700 mb-2">ชั้นเรียน</label>
+                    <select id="student-class" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" required>
+                        <option value="">เลือกชั้นเรียน</option>
+                        <option value="ม.1">ม.1</option>
+                        <option value="ม.2">ม.2</option>
+                        <option value="ม.3">ม.3</option>
+                        <option value="ม.4">ม.4</option>
+                        <option value="ม.5">ม.5</option>
+                        <option value="ม.6">ม.6</option>
+                    </select>
+                </div>
+                <div class="mb-6">
+                    <label for="student-points" class="block text-gray-700 mb-2">คะแนนสะสม</label>
+                    <input type="number" id="student-points" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" min="0" value="0" required>
+                </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancel-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition duration-300">ยกเลิก</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-300">บันทึก</button>
+                </div>
+            </form>
         </div>
     </div>
 
-    <!-- Game Screen -->
-    <div id="game-screen" class="game-screen max-w-6xl mx-auto">
-        <div class="flex justify-between items-center mb-6">
-            <h1 class="game-title text-3xl md:text-4xl font-bold text-white">พลเมืองนักสืบ: เปิดแผ่นป้ายไขรหัสหน้าที่</h1>
-            <div class="score-display">
-                คะแนน: <span id="score">0</span>/12
+    <!-- Modal for point adjustment -->
+    <div id="points-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-xl shadow-xl p-6 w-full max-w-md">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-semibold text-gray-800">ปรับคะแนนสะสม</h3>
+                <button id="close-points-modal" class="text-gray-500 hover:text-gray-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
             </div>
-        </div>
-        
-        <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <!-- Card 1 -->
-            <div class="card h-64 relative">
-                <div class="card-inner h-full">
-                    <div class="card-front flex flex-col items-center justify-center">
-                        <span class="absolute top-2 left-2 text-sm bg-white/80 rounded-full w-6 h-6 flex items-center justify-center">1</span>
-                        <span class="text-4xl">1</span>
-                        <span class="text-sm mt-2">คลิกเพื่อเปิด</span>
-                    </div>
-                    <div class="card-back flex flex-col">
-                        <div class="emoji-clue">🗳️ 📝 ✅</div>
-                        <button class="reveal-btn text-white font-bold py-2 px-4 rounded-full text-sm">เฉลย</button>
-                        <div class="answer">
-                            <p class="font-semibold">การไปใช้สิทธิเลือกตั้ง</p>
-                        </div>
-                        <button class="btn-back text-white font-bold py-2 px-4 rounded-full text-sm mt-auto">กลับ</button>
+            <div class="mb-4">
+                <p class="text-gray-700">นักเรียน: <span id="points-student-name" class="font-medium"></span></p>
+                <p class="text-gray-700">คะแนนปัจจุบัน: <span id="current-points" class="font-medium"></span> คะแนน</p>
+            </div>
+            <form id="points-form">
+                <input type="hidden" id="points-student-id">
+                <div class="mb-4">
+                    <label class="block text-gray-700 mb-2">การปรับคะแนน</label>
+                    <div class="flex space-x-4">
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="point-action" value="add" class="form-radio text-indigo-600" checked>
+                            <span class="ml-2">เพิ่ม</span>
+                        </label>
+                        <label class="inline-flex items-center">
+                            <input type="radio" name="point-action" value="subtract" class="form-radio text-indigo-600">
+                            <span class="ml-2">หัก</span>
+                        </label>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Card 2 -->
-            <div class="card h-64 relative">
-                <div class="card-inner h-full">
-                    <div class="card-front flex flex-col items-center justify-center">
-                        <span class="absolute top-2 left-2 text-sm bg-white/80 rounded-full w-6 h-6 flex items-center justify-center">2</span>
-                        <span class="text-4xl">2</span>
-                        <span class="text-sm mt-2">คลิกเพื่อเปิด</span>
-                    </div>
-                    <div class="card-back flex flex-col">
-                        <div class="emoji-clue">💰 📊 🏛️</div>
-                        <button class="reveal-btn text-white font-bold py-2 px-4 rounded-full text-sm">เฉลย</button>
-                        <div class="answer">
-                            <p class="font-semibold">การเสียภาษี</p>
-                        </div>
-                        <button class="btn-back text-white font-bold py-2 px-4 rounded-full text-sm mt-auto">กลับ</button>
-                    </div>
+                <div class="mb-6">
+                    <label for="points-amount" class="block text-gray-700 mb-2">จำนวนคะแนน</label>
+                    <input type="number" id="points-amount" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" min="1" value="1" required>
                 </div>
-            </div>
-            
-            <!-- Card 3 -->
-            <div class="card h-64 relative">
-                <div class="card-inner h-full">
-                    <div class="card-front flex flex-col items-center justify-center">
-                        <span class="absolute top-2 left-2 text-sm bg-white/80 rounded-full w-6 h-6 flex items-center justify-center">3</span>
-                        <span class="text-4xl">3</span>
-                        <span class="text-sm mt-2">คลิกเพื่อเปิด</span>
-                    </div>
-                    <div class="card-back flex flex-col">
-                        <div class="emoji-clue">⚖️ 📜 👮</div>
-                        <button class="reveal-btn text-white font-bold py-2 px-4 rounded-full text-sm">เฉลย</button>
-                        <div class="answer">
-                            <p class="font-semibold">การเคารพกฎหมาย</p>
-                        </div>
-                        <button class="btn-back text-white font-bold py-2 px-4 rounded-full text-sm mt-auto">กลับ</button>
-                    </div>
+                <div class="flex justify-end space-x-4">
+                    <button type="button" id="cancel-points-btn" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-100 transition duration-300">ยกเลิก</button>
+                    <button type="submit" class="px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-300">บันทึก</button>
                 </div>
-            </div>
-            
-            <!-- Card 4 -->
-            <div class="card h-64 relative">
-                <div class="card-inner h-full">
-                    <div class="card-front flex flex-col items-center justify-center">
-                        <span class="absolute top-2 left-2 text-sm bg-white/80 rounded-full w-6 h-6 flex items-center justify-center">4</span>
-                        <span class="text-4xl">4</span>
-                        <span class="text-sm mt-2">คลิกเพื่อเปิด</span>
-                    </div>
-                    <div class="card-back flex flex-col">
-                        <div class="emoji-clue">🌳 ♻️ 🌍</div>
-                        <button class="reveal-btn text-white font-bold py-2 px-4 rounded-full text-sm">เฉลย</button>
-                        <div class="answer">
-                            <p class="font-semibold">การอนุรักษ์ทรัพยากรธรรมชาติ</p>
-                        </div>
-                        <button class="btn-back text-white font-bold py-2 px-4 rounded-full text-sm mt-auto">กลับ</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Card 5 -->
-            <div class="card h-64 relative">
-                <div class="card-inner h-full">
-                    <div class="card-front flex flex-col items-center justify-center">
-                        <span class="absolute top-2 left-2 text-sm bg-white/80 rounded-full w-6 h-6 flex items-center justify-center">5</span>
-                        <span class="text-4xl">5</span>
-                        <span class="text-sm mt-2">คลิกเพื่อเปิด</span>
-                    </div>
-                    <div class="card-back flex flex-col">
-                        <div class="emoji-clue">🏫 🚌 🏥</div>
-                        <button class="reveal-btn text-white font-bold py-2 px-4 rounded-full text-sm">เฉลย</button>
-                        <div class="answer">
-                            <p class="font-semibold">การรักษาสาธารณสมบัติ</p>
-                        </div>
-                        <button class="btn-back text-white font-bold py-2 px-4 rounded-full text-sm mt-auto">กลับ</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Card 6 -->
-            <div class="card h-64 relative">
-                <div class="card-inner h-full">
-                    <div class="card-front flex flex-col items-center justify-center">
-                        <span class="absolute top-2 left-2 text-sm bg-white/80 rounded-full w-6 h-6 flex items-center justify-center">6</span>
-                        <span class="text-4xl">6</span>
-                        <span class="text-sm mt-2">คลิกเพื่อเปิด</span>
-                    </div>
-                    <div class="card-back flex flex-col">
-                        <div class="emoji-clue">🎖️ 🛡️ 🇹🇭</div>
-                        <button class="reveal-btn text-white font-bold py-2 px-4 rounded-full text-sm">เฉลย</button>
-                        <div class="answer">
-                            <p class="font-semibold">การป้องกันประเทศ</p>
-                        </div>
-                        <button class="btn-back text-white font-bold py-2 px-4 rounded-full text-sm mt-auto">กลับ</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Card 7 -->
-            <div class="card h-64 relative">
-                <div class="card-inner h-full">
-                    <div class="card-front flex flex-col items-center justify-center">
-                        <span class="absolute top-2 left-2 text-sm bg-white/80 rounded-full w-6 h-6 flex items-center justify-center">7</span>
-                        <span class="text-4xl">7</span>
-                        <span class="text-sm mt-2">คลิกเพื่อเปิด</span>
-                    </div>
-                    <div class="card-back flex flex-col">
-                        <div class="emoji-clue">👨‍👩‍👧‍👦 🏠 💕</div>
-                        <button class="reveal-btn text-white font-bold py-2 px-4 rounded-full text-sm">เฉลย</button>
-                        <div class="answer">
-                            <p class="font-semibold">การรักษาวัฒนธรรมไทย</p>
-                        </div>
-                        <button class="btn-back text-white font-bold py-2 px-4 rounded-full text-sm mt-auto">กลับ</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Card 8 -->
-            <div class="card h-64 relative">
-                <div class="card-inner h-full">
-                    <div class="card-front flex flex-col items-center justify-center">
-                        <span class="absolute top-2 left-2 text-sm bg-white/80 rounded-full w-6 h-6 flex items-center justify-center">8</span>
-                        <span class="text-4xl">8</span>
-                        <span class="text-sm mt-2">คลิกเพื่อเปิด</span>
-                    </div>
-                    <div class="card-back flex flex-col">
-                        <div class="emoji-clue">📱 💻 🔒</div>
-                        <button class="reveal-btn text-white font-bold py-2 px-4 rounded-full text-sm">เฉลย</button>
-                        <div class="answer">
-                            <p class="font-semibold">การเป็นพลเมืองดิจิทัลที่ดี</p>
-                        </div>
-                        <button class="btn-back text-white font-bold py-2 px-4 rounded-full text-sm mt-auto">กลับ</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Card 9 -->
-            <div class="card h-64 relative">
-                <div class="card-inner h-full">
-                    <div class="card-front flex flex-col items-center justify-center">
-                        <span class="absolute top-2 left-2 text-sm bg-white/80 rounded-full w-6 h-6 flex items-center justify-center">9</span>
-                        <span class="text-4xl">9</span>
-                        <span class="text-sm mt-2">คลิกเพื่อเปิด</span>
-                    </div>
-                    <div class="card-back flex flex-col">
-                        <div class="emoji-clue">🤝 🧩 👥</div>
-                        <button class="reveal-btn text-white font-bold py-2 px-4 rounded-full text-sm">เฉลย</button>
-                        <div class="answer">
-                            <p class="font-semibold">การเคารพสิทธิผู้อื่น</p>
-                        </div>
-                        <button class="btn-back text-white font-bold py-2 px-4 rounded-full text-sm mt-auto">กลับ</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Card 10 -->
-            <div class="card h-64 relative">
-                <div class="card-inner h-full">
-                    <div class="card-front flex flex-col items-center justify-center">
-                        <span class="absolute top-2 left-2 text-sm bg-white/80 rounded-full w-6 h-6 flex items-center justify-center">10</span>
-                        <span class="text-4xl">10</span>
-                        <span class="text-sm mt-2">คลิกเพื่อเปิด</span>
-                    </div>
-                    <div class="card-back flex flex-col">
-                        <div class="emoji-clue">📚 🎓 🧠</div>
-                        <button class="reveal-btn text-white font-bold py-2 px-4 rounded-full text-sm">เฉลย</button>
-                        <div class="answer">
-                            <p class="font-semibold">การศึกษาและเรียนรู้</p>
-                        </div>
-                        <button class="btn-back text-white font-bold py-2 px-4 rounded-full text-sm mt-auto">กลับ</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Card 11 -->
-            <div class="card h-64 relative">
-                <div class="card-inner h-full">
-                    <div class="card-front flex flex-col items-center justify-center">
-                        <span class="absolute top-2 left-2 text-sm bg-white/80 rounded-full w-6 h-6 flex items-center justify-center">11</span>
-                        <span class="text-4xl">11</span>
-                        <span class="text-sm mt-2">คลิกเพื่อเปิด</span>
-                    </div>
-                    <div class="card-back flex flex-col">
-                        <div class="emoji-clue">⚕️ 🏥 🧑‍⚕️</div>
-                        <button class="reveal-btn text-white font-bold py-2 px-4 rounded-full text-sm">เฉลย</button>
-                        <div class="answer">
-                            <p class="font-semibold">การดูแลสุขภาพตนเอง</p>
-                        </div>
-                        <button class="btn-back text-white font-bold py-2 px-4 rounded-full text-sm mt-auto">กลับ</button>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- Card 12 -->
-            <div class="card h-64 relative">
-                <div class="card-inner h-full">
-                    <div class="card-front flex flex-col items-center justify-center">
-                        <span class="absolute top-2 left-2 text-sm bg-white/80 rounded-full w-6 h-6 flex items-center justify-center">12</span>
-                        <span class="text-4xl">12</span>
-                        <span class="text-sm mt-2">คลิกเพื่อเปิด</span>
-                    </div>
-                    <div class="card-back flex flex-col">
-                        <div class="emoji-clue">🤲 ❤️ 🤝</div>
-                        <button class="reveal-btn text-white font-bold py-2 px-4 rounded-full text-sm">เฉลย</button>
-                        <div class="answer">
-                            <p class="font-semibold">จิตอาสาและการช่วยเหลือสังคม</p>
-                        </div>
-                        <button class="btn-back text-white font-bold py-2 px-4 rounded-full text-sm mt-auto">กลับ</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="mt-8 text-center">
-            <button id="back-to-intro" class="bg-white text-purple-600 font-bold py-2 px-6 rounded-full text-lg border-2 border-purple-600 hover:bg-purple-100 transition duration-300 flex items-center mx-auto">
-                <span class="mr-2">🏠</span> กลับสู่หน้าแรก
-            </button>
-        </div>
-        
-        <div class="mt-6 text-center">
-            <div class="footer-container inline-block">
-                <div class="school-logo">🏫</div>
-                <div class="footer-note">
-                    <p>หน้าที่พลเมือง ลูกเสือม.3 โรงเรียนแม่จันวิทยาคม</p>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Congratulations Modal -->
-    <div id="congrats-modal" class="fixed inset-0 bg-black/70 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-xl p-8 max-w-md mx-4 relative">
-            <div class="absolute -top-10 left-1/2 transform -translate-x-1/2">
-                <span class="text-6xl">🏆</span>
-            </div>
-            <h2 class="text-2xl font-bold text-center mt-6 mb-4">ยินดีด้วย! 🎉</h2>
-            <p class="text-center text-lg mb-6">คุณได้รับตำแหน่ง "พลเมืองนักสืบระดับแพลทินัม" แล้ว!</p>
-            <div class="flex justify-center">
-                <div class="bg-gradient-to-r from-purple-100 to-blue-100 p-4 rounded-lg border border-purple-200 mb-6">
-                    <p class="text-center">คะแนนของคุณ: <span class="font-bold text-purple-600 text-xl">12/12</span></p>
-                </div>
-            </div>
-            <div class="flex justify-center">
-                <button id="close-modal" class="bg-gradient-to-r from-purple-600 to-blue-500 text-white font-bold py-2 px-6 rounded-full">ปิด</button>
-            </div>
-            <div class="mt-4 text-center text-sm text-gray-500">
-                <p>หน้าที่พลเมือง ลูกเสือม.3 โรงเรียนแม่จันวิทยาคม</p>
-            </div>
+            </form>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const introScreen = document.getElementById('intro-screen');
-            const gameScreen = document.getElementById('game-screen');
-            const startGameBtn = document.getElementById('start-game');
-            const backToIntroBtn = document.getElementById('back-to-intro');
-            const cards = document.querySelectorAll('.card');
-            const backButtons = document.querySelectorAll('.btn-back');
-            const revealButtons = document.querySelectorAll('.reveal-btn');
-            const scoreDisplay = document.getElementById('score');
-            const congratsModal = document.getElementById('congrats-modal');
-            const closeModalBtn = document.getElementById('close-modal');
+        // Sample data - in a real app, this would come from a database
+        let students = [
+            { id: 1, code: '10001', name: 'นายสมชาย ใจดี', class: 'ม.4', points: 120 },
+            { id: 2, code: '10002', name: 'นางสาวสมหญิง รักเรียน', class: 'ม.4', points: 150 },
+            { id: 3, code: '10003', name: 'นายวิชัย เก่งกล้า', class: 'ม.5', points: 95 },
+            { id: 4, code: '10004', name: 'นางสาวนภา ฉลาดล้ำ', class: 'ม.5', points: 200 },
+            { id: 5, code: '10005', name: 'นายธนา มั่งมี', class: 'ม.6', points: 180 },
+            { id: 6, code: '10006', name: 'นางสาวพิมพ์ใจ งามงอน', class: 'ม.6', points: 165 }
+        ];
+
+        // DOM elements
+        const studentsContainer = document.getElementById('students-container');
+        const summaryTable = document.getElementById('summary-table');
+        const searchInput = document.getElementById('search-input');
+        const studentModal = document.getElementById('student-modal');
+        const pointsModal = document.getElementById('points-modal');
+        const studentForm = document.getElementById('student-form');
+        const pointsForm = document.getElementById('points-form');
+        const currentDateElement = document.getElementById('current-date');
+
+        // Display current date
+        const today = new Date();
+        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+        currentDateElement.textContent = today.toLocaleDateString('th-TH', options);
+
+        // Render students
+        function renderStudents(studentsToRender = students) {
+            studentsContainer.innerHTML = '';
             
-            let score = 0;
-            let flippedCards = 0;
-            
-            // Create confetti
-            function createConfetti() {
-                const colors = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'];
-                
-                for (let i = 0; i < 100; i++) {
-                    const confetti = document.createElement('div');
-                    confetti.className = 'confetti';
-                    confetti.style.left = Math.random() * 100 + 'vw';
-                    confetti.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
-                    confetti.style.width = Math.random() * 10 + 5 + 'px';
-                    confetti.style.height = Math.random() * 10 + 5 + 'px';
-                    confetti.style.opacity = Math.random();
-                    confetti.style.animationDuration = Math.random() * 3 + 2 + 's';
-                    confetti.style.animationDelay = Math.random() * 5 + 's';
-                    document.body.appendChild(confetti);
-                    
-                    // Remove confetti after animation
-                    setTimeout(() => {
-                        confetti.remove();
-                    }, 8000);
-                }
+            if (studentsToRender.length === 0) {
+                studentsContainer.innerHTML = '<p class="col-span-3 text-center py-8 text-gray-500">ไม่พบข้อมูลนักเรียน</p>';
+                return;
             }
             
-            // Start game button
-            startGameBtn.addEventListener('click', function() {
-                introScreen.style.display = 'none';
-                gameScreen.style.display = 'block';
+            studentsToRender.forEach(student => {
+                const card = document.createElement('div');
+                card.className = 'student-card bg-white border border-gray-200 rounded-xl shadow-sm p-6 transition duration-300';
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-4">
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-800">${student.name}</h3>
+                            <p class="text-gray-600">รหัส: ${student.code}</p>
+                            <p class="text-gray-600">ชั้น: ${student.class}</p>
+                        </div>
+                        <div class="bg-indigo-100 text-indigo-800 font-bold rounded-full h-16 w-16 flex items-center justify-center">
+                            ${student.points}
+                        </div>
+                    </div>
+                    <div class="flex space-x-2">
+                        <button class="adjust-points-btn flex-1 px-3 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-300" data-id="${student.id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 inline-block mr-1" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-11a1 1 0 10-2 0v2H7a1 1 0 100 2h2v2a1 1 0 102 0v-2h2a1 1 0 100-2h-2V7z" clip-rule="evenodd" />
+                            </svg>
+                            ปรับคะแนน
+                        </button>
+                        <button class="edit-student-btn px-3 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-300" data-id="${student.id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                            </svg>
+                        </button>
+                        <button class="delete-student-btn px-3 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition duration-300" data-id="${student.id}">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                studentsContainer.appendChild(card);
+            });
+
+            // Add event listeners to buttons
+            document.querySelectorAll('.edit-student-btn').forEach(btn => {
+                btn.addEventListener('click', () => editStudent(parseInt(btn.dataset.id)));
             });
             
-            // Back to intro button
-            backToIntroBtn.addEventListener('click', function() {
-                gameScreen.style.display = 'none';
-                introScreen.style.display = 'block';
+            document.querySelectorAll('.delete-student-btn').forEach(btn => {
+                btn.addEventListener('click', () => deleteStudent(parseInt(btn.dataset.id)));
             });
             
-            // Card click event
-            cards.forEach(card => {
-                card.addEventListener('click', function() {
-                    if (!this.classList.contains('flipped')) {
-                        this.classList.add('flipped');
-                        score++;
-                        flippedCards++;
-                        scoreDisplay.textContent = score;
-                        
-                        // Check if all cards are flipped
-                        if (flippedCards === 12) {
-                            setTimeout(() => {
-                                congratsModal.classList.remove('hidden');
-                                createConfetti();
-                            }, 1000);
-                        }
-                    }
-                });
+            document.querySelectorAll('.adjust-points-btn').forEach(btn => {
+                btn.addEventListener('click', () => openPointsModal(parseInt(btn.dataset.id)));
+            });
+        }
+
+        // Render summary
+        function renderSummary() {
+            summaryTable.innerHTML = '';
+            
+            // Group students by class
+            const classSummary = {};
+            students.forEach(student => {
+                if (!classSummary[student.class]) {
+                    classSummary[student.class] = {
+                        count: 0,
+                        totalPoints: 0
+                    };
+                }
+                classSummary[student.class].count++;
+                classSummary[student.class].totalPoints += student.points;
             });
             
-            // Reveal button click event
-            revealButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const answer = this.nextElementSibling;
-                    if (answer.style.display === 'block') {
-                        answer.style.display = 'none';
-                        this.textContent = 'เฉลย';
-                    } else {
-                        answer.style.display = 'block';
-                        this.textContent = 'ซ่อนคำตอบ';
-                    }
-                });
+            // Sort classes
+            const sortedClasses = Object.keys(classSummary).sort();
+            
+            // Create table rows
+            sortedClasses.forEach(className => {
+                const summary = classSummary[className];
+                const avgPoints = summary.count > 0 ? (summary.totalPoints / summary.count).toFixed(1) : 0;
+                
+                const row = document.createElement('tr');
+                row.className = 'border-b hover:bg-gray-50';
+                row.innerHTML = `
+                    <td class="py-3 px-4">${className}</td>
+                    <td class="py-3 px-4">${summary.count} คน</td>
+                    <td class="py-3 px-4">${summary.totalPoints} คะแนน</td>
+                    <td class="py-3 px-4">${avgPoints} คะแนน</td>
+                `;
+                summaryTable.appendChild(row);
             });
             
-            // Back button click event
-            backButtons.forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.stopPropagation();
-                    const card = this.closest('.card');
-                    card.classList.remove('flipped');
-                    
-                    // Reset reveal button and answer
-                    const revealBtn = card.querySelector('.reveal-btn');
-                    const answer = card.querySelector('.answer');
-                    if (revealBtn && answer) {
-                        revealBtn.textContent = 'เฉลย';
-                        answer.style.display = 'none';
-                    }
-                });
-            });
+            // Add total row
+            const totalStudents = students.length;
+            const totalPoints = students.reduce((sum, student) => sum + student.points, 0);
+            const avgPoints = totalStudents > 0 ? (totalPoints / totalStudents).toFixed(1) : 0;
             
-            // Close modal button
-            closeModalBtn.addEventListener('click', function() {
-                congratsModal.classList.add('hidden');
-            });
+            const totalRow = document.createElement('tr');
+            totalRow.className = 'bg-indigo-50 font-semibold';
+            totalRow.innerHTML = `
+                <td class="py-3 px-4">ทั้งหมด</td>
+                <td class="py-3 px-4">${totalStudents} คน</td>
+                <td class="py-3 px-4">${totalPoints} คะแนน</td>
+                <td class="py-3 px-4">${avgPoints} คะแนน</td>
+            `;
+            summaryTable.appendChild(totalRow);
+        }
+
+        // Search functionality
+        searchInput.addEventListener('input', () => {
+            const searchTerm = searchInput.value.toLowerCase();
+            const filteredStudents = students.filter(student => 
+                student.name.toLowerCase().includes(searchTerm) || 
+                student.code.toLowerCase().includes(searchTerm)
+            );
+            renderStudents(filteredStudents);
         });
+
+        // Add student modal
+        document.getElementById('add-student-btn').addEventListener('click', () => {
+            document.getElementById('modal-title').textContent = 'เพิ่มนักเรียน';
+            document.getElementById('student-id').value = '';
+            document.getElementById('student-code').value = '';
+            document.getElementById('student-name').value = '';
+            document.getElementById('student-class').value = '';
+            document.getElementById('student-points').value = '0';
+            studentModal.classList.remove('hidden');
+        });
+
+        document.getElementById('close-modal').addEventListener('click', () => {
+            studentModal.classList.add('hidden');
+        });
+
+        document.getElementById('cancel-btn').addEventListener('click', () => {
+            studentModal.classList.add('hidden');
+        });
+
+        // Edit student
+        function editStudent(id) {
+            const student = students.find(s => s.id === id);
+            if (student) {
+                document.getElementById('modal-title').textContent = 'แก้ไขข้อมูลนักเรียน';
+                document.getElementById('student-id').value = student.id;
+                document.getElementById('student-code').value = student.code;
+                document.getElementById('student-name').value = student.name;
+                document.getElementById('student-class').value = student.class;
+                document.getElementById('student-points').value = student.points;
+                studentModal.classList.remove('hidden');
+            }
+        }
+
+        // Delete student
+        function deleteStudent(id) {
+            if (confirm('คุณต้องการลบข้อมูลนักเรียนคนนี้ใช่หรือไม่?')) {
+                students = students.filter(student => student.id !== id);
+                renderStudents();
+                renderSummary();
+            }
+        }
+
+        // Save student
+        studentForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const id = document.getElementById('student-id').value;
+            const code = document.getElementById('student-code').value;
+            const name = document.getElementById('student-name').value;
+            const studentClass = document.getElementById('student-class').value;
+            const points = parseInt(document.getElementById('student-points').value);
+            
+            if (id) {
+                // Update existing student
+                const index = students.findIndex(s => s.id === parseInt(id));
+                if (index !== -1) {
+                    students[index] = {
+                        id: parseInt(id),
+                        code,
+                        name,
+                        class: studentClass,
+                        points
+                    };
+                }
+            } else {
+                // Add new student
+                const newId = students.length > 0 ? Math.max(...students.map(s => s.id)) + 1 : 1;
+                students.push({
+                    id: newId,
+                    code,
+                    name,
+                    class: studentClass,
+                    points
+                });
+            }
+            
+            studentModal.classList.add('hidden');
+            renderStudents();
+            renderSummary();
+        });
+
+        // Points adjustment modal
+        function openPointsModal(id) {
+            const student = students.find(s => s.id === id);
+            if (student) {
+                document.getElementById('points-student-id').value = student.id;
+                document.getElementById('points-student-name').textContent = student.name;
+                document.getElementById('current-points').textContent = student.points;
+                document.getElementById('points-amount').value = '1';
+                pointsModal.classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('close-points-modal').addEventListener('click', () => {
+            pointsModal.classList.add('hidden');
+        });
+
+        document.getElementById('cancel-points-btn').addEventListener('click', () => {
+            pointsModal.classList.add('hidden');
+        });
+
+        // Save points adjustment
+        pointsForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            
+            const id = parseInt(document.getElementById('points-student-id').value);
+            const amount = parseInt(document.getElementById('points-amount').value);
+            const action = document.querySelector('input[name="point-action"]:checked').value;
+            
+            const student = students.find(s => s.id === id);
+            if (student) {
+                if (action === 'add') {
+                    student.points += amount;
+                } else {
+                    student.points = Math.max(0, student.points - amount);
+                }
+                
+                pointsModal.classList.add('hidden');
+                renderStudents();
+                renderSummary();
+            }
+        });
+
+        // Initial render
+        renderStudents();
+        renderSummary();
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9631319d561e893a',t:'MTc1MzE2OTAxOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'96314803655ca1c8',t:'MTc1MzE2OTkzNi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
